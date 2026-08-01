@@ -1,0 +1,45 @@
+{
+    "name": "rse-sa/supertable",
+    "description": "Livewire-backed data-table abstraction — fluent config builder plus a rich filterable/sortable SuperTable and a lightweight SimpleTable",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "RSE\\SuperTable\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "RSE\\SuperTable\\Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0|^12.0",
+        "livewire/livewire": "^3.0|^4.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0",
+        "pestphp/pest": "^3.0"
+    },
+    "suggest": {
+        "maatwebsite/excel": "Allows registering Maatwebsite\\Excel export classes as table export handlers."
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "RSE\\SuperTable\\SupertableServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/pest"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
