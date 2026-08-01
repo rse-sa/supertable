@@ -1,4 +1,4 @@
-# rse-sa/supertable
+# SuperTable By RSE.SA
 
 > Livewire-backed data-table abstraction for Laravel — a fluent config builder plus two ready-made
 > Livewire components: a rich, filterable/sortable **SuperTable**, and a lightweight **SimpleTable**
