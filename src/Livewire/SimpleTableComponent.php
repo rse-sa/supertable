@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 use RSE\SuperTable\SimpleTableConfig;
@@ -34,11 +35,22 @@ class SimpleTableComponent extends Component
     #[Locked]
     public array $parameters;
 
-    public function mount(string $tableName, array $parameters = []): void
+    /**
+     * Filters picked by the user, merged into the query parameters.
+     *
+     * @var array<string, mixed>
+     */
+    public array $filters = [];
+
+    public ?string $search = null;
+
+    public function mount(string $tableName, array $parameters = [], array $filters = []): void
     {
         $this->tableName = $tableName;
 
         $this->parameters = $parameters;
+
+        $this->filters = array_filter($filters, fn ($value) => $value !== null && $value !== '');
 
         $config = $this->getConfig();
 
@@ -52,9 +64,70 @@ class SimpleTableComponent extends Component
         return SimpleTableRepo::getConfigInstance($this->tableName);
     }
 
+    /**
+     * Server-side parameters always win over what the browser sends.
+     *
+     * @return array<string, mixed>
+     */
+    protected function queryParameters(): array
+    {
+        return array_merge(
+            $this->filters,
+            $this->parameters,
+            $this->search !== null ? ['q' => $this->search] : [],
+        );
+    }
+
     protected function prepareQuery(): Builder|Relation
     {
-        return $this->getConfig()->getQuery($this->parameters);
+        return $this->getConfig()->getQuery($this->queryParameters());
+    }
+
+    #[On('simple-table-filter')]
+    public function applyFilter(string $table, string $key, mixed $value = null): void
+    {
+        if ($table !== $this->tableName) {
+            return;
+        }
+
+        if ($value === null || $value === '') {
+            unset($this->filters[$key]);
+        } else {
+            $this->filters[$key] = $value;
+        }
+
+        $this->filtersChanged();
+    }
+
+    #[On('simple-table-clear-filters')]
+    public function clearFilters(string $table): void
+    {
+        if ($table !== $this->tableName) {
+            return;
+        }
+
+        $this->filters = [];
+
+        $this->filtersChanged();
+    }
+
+    #[On('simple-table-search')]
+    public function applySearch(string $table, ?string $q = null): void
+    {
+        if ($table !== $this->tableName) {
+            return;
+        }
+
+        $this->search = $q;
+
+        $this->resetPage($this->getConfig()->pageName);
+    }
+
+    protected function filtersChanged(): void
+    {
+        $this->resetPage($this->getConfig()->pageName);
+
+        $this->dispatch('simple-table-filters', table: $this->tableName, filters: $this->filters);
     }
 
     public function results(): Collection|LengthAwarePaginator
